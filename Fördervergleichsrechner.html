@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fördervergleichsrechner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            color: #023e84;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #fdfdfd;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        #btnCalc {
+            grid-column: span 2;
+            padding: 15px;
+            background: #646464;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #btnCalc:hover {
+            background: #4d4d4d;
+        }
+
+        #output {
+            margin-top: 40px;
+            display: none;
+            border-top: 3px solid #646464;
+            padding-top: 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            background: #fff;
+        }
+
+        .card.top {
+            background: #f0f0f0;
+            border-color: #646464;
+            transform: scale(1.05);
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .card .val {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 8px 0;
+        }
+
+        .card .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #646464;
+            color: white;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: #023e84;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .win-row {
+            background: #f5f5f5;
+            font-weight: bold;
+        }
+
+        /* Column Chart Styles (outside cards) */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .column-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            min-height: 220px;
+        }
+
+        .column-container {
+            width: 60px;
+            height: 200px;
+            background: #f8f8f8;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column-reverse;
+            border: 1px solid #eee;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .column-segment {
+            width: 100%;
+            transition: height 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: help;
+        }
+
+        .seg-net {
+            background: #646464;
+        }
+
+        .seg-tax {
+            background: #023e84;
+        }
+
+        .seg-sub {
+            background: #3498db;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0 40px;
+            font-size: 0.85em;
+            color: #666;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* Toggle Switch */
+        .switch-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+        }
+
+        .switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: #ccc;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        input:checked+.slider {
+            background: #023e84;
+        }
+
+        input:checked+.slider::before {
+            transform: translateX(22px);
+        }
+
+        .switch-label {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #555;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Fördervergleichsrechner</h1>
+        <div class="input-grid">
+            <div class="group">
+                <label>Berufsstatus</label>
+                <select id="inp_status">
+                    <option value="angestellt" selected>Angestellt</option>
+                    <option value="verbeamtet">Verbeamtet</option>
+                    <option value="selbstaendig">Selbst&#228;ndig</option>
+                </select>
+            </div>
+            <div class="group">
+                <label>Bruttogehalt p.a. (&#8364;)</label>
+                <input type="text" id="inp_inc" value="48.000">
+            </div>
+            <div class="group">
+                <label>Familienstand</label>
+                <select id="inp_mar">
+                    <option value="m">Verheiratet</option>
+                    <option value="s" selected>Single</option>
+                </select>
+            </div>
+            <div class="group" id="grp_incP" style="visibility: hidden;">
+                <label>Bruttogehalt p.a. Partner (&#8364;)</label>
+                <input type="text" id="inp_incP" value="0">
+            </div>
+            <div class="group">
+                <label>Kinder (Anzahl)</label>
+                <input type="number" id="inp_kids" value="0">
+            </div>
+            <div class="group">
+                <label>Nettobeitrag mtl. (&#8364;)</label>
+                <input type="number" id="inp_net" value="150">
+            </div>
+            <div class="group switch-group" style="justify-content: center;">
+                <label class="switch">
+                    <input type="checkbox" id="chk_bav" checked>
+                    <span class="slider"></span>
+                </label>
+                <span class="switch-label">bAV gew&#252;nscht</span>
+            </div>
+            <div class="group" id="grp_ag">
+                <label>AG-Zuschuss bAV (%)</label>
+                <input type="number" id="inp_ag" value="15">
+            </div>
+            <button id="btnCalc">ANALYSE STARTEN</button>
+        </div>
+        <div id="output">
+            <div class="cards" id="res_cards"></div>
+            <div class="chart-grid" id="res_chart"></div>
+
+            <div class="chart-legend">
+                <div class="legend-item">
+                    <div class="legend-box seg-net"></div> Nettobeitrag
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box seg-tax"></div> Vorteil (Steuer/SV)
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box seg-sub"></div> Zuschüsse (AG/Staat)
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Modell</th>
+                        <th>Nettobeitrag</th>
+                        <th>Bruttobeitrag</th>
+                        <th>Hebel-Faktor</th>
+                    </tr>
+                </thead>
+                <tbody id="res_table"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        // Tausender-Formatierung für Brutto-Felder
+        ['inp_inc', 'inp_incP'].forEach(function (id) {
+            document.getElementById(id).addEventListener('blur', function () {
+                const num = parseInt(this.value.replace(/\./g, ''), 10);
+                if (!isNaN(num)) this.value = num.toLocaleString('de-DE');
+            });
+        });
+        // Partner-Bruttogehalt ein-/ausblenden je nach Familienstand
+        document.getElementById('inp_mar').addEventListener('change', function () {
+            document.getElementById('grp_incP').style.visibility =
+                this.value === 'm' ? 'visible' : 'hidden';
+        });
+        // bAV-Switch: AG-Zuschuss-Feld ein-/ausblenden
+        document.getElementById('chk_bav').addEventListener('change', function () {
+            document.getElementById('grp_ag').style.visibility = this.checked ? 'visible' : 'hidden';
+        });
+        document.getElementById('btnCalc').addEventListener('click', function () {
+            // 1. Eingaben holen
+            const inc = parseFloat(document.getElementById('inp_inc').value.replace(/\./g, '')) || 0;
+            const incP = parseFloat(document.getElementById('inp_incP').value.replace(/\./g, '')) || 0;
+            const kids = parseInt(document.getElementById('inp_kids').value) || 0;
+            const net = parseFloat(document.getElementById('inp_net').value) || 1;
+            const ag = (parseFloat(document.getElementById('inp_ag').value) || 0) / 100;
+            const isM = document.getElementById('inp_mar').value === 'm';
+            // 2. Steuer- & SV-Rechnung (2026)
+            const sv = 0.218; // AN-SV-Anteil (KV+RV+AV+PV inkl. Zusatzbeiträge)
+            // Zu versteuerndes Einkommen (nach SV, Werbungskostenpauschale 1.230€)
+            const zvE = isM
+                ? Math.max(0, (inc + incP) * (1 - sv) / 2 - 1230)
+                : Math.max(0, inc * (1 - sv) - 1230);
+            let tax = 0.10;
+            if (zvE > 17000) tax = 0.24;
+            if (zvE > 40000) tax = 0.32;
+            if (zvE > 68000) tax = 0.42;
+            // Grenzsteuersatz gem. §32a EStG 2026
+            let taxM = 0;
+            if (zvE > 12348) {
+                const y = (zvE - 12348) / 10000;
+                taxM = (2 * 914.51 * y + 1400) / 10000; // Erste Progressionszone (bis 17.799)
+            }
+            if (zvE > 17799) {
+                const z = (zvE - 17799) / 10000;
+                taxM = (2 * 173.10 * z + 2397) / 10000; // Zweite Progressionszone (bis 69.878)
+            }
+            if (zvE > 69878) taxM = 0.42;
+            if (zvE > 277825) taxM = 0.45;
+            // 3. Varianten berechnen
+            // bAV
+            const bavBrutto = net / ((1 - taxM) * (1 - sv)); // Korrekte multiplikative Formel
+            const bavTotal = bavBrutto * (1 + ag);
+            // AV-Depot: Grundzulage (50% auf erste 360€, 25% auf weitere 1440€)
+            const annualNet = net * 12;
+            const baseZulage = (Math.min(annualNet, 360) * 0.5) + (Math.max(0, Math.min(annualNet - 360, 1440)) * 0.25);
+            // AV-Depot: Kinderzulage (1€ pro 1€ Eigenbeitrag, max 300€ pro Kind)
+            const kidsZulage = kids * Math.min(annualNet, 300);
+            const zulage = (baseZulage / 12) + (kidsZulage / 12);
+            const steuer = net * taxM; // Günstigerprüfung: Steuerersparnis via Grenzsteuersatz
+            const avTotal = net + Math.max(zulage, steuer);
+            // Rürup
+            const ruerupTotal = net / (1 - taxM); // Steuerersparnis via Grenzsteuersatz
+            // Privat
+            const privTotal = net;
+            // 4. Sortieren
+            const bavOn = document.getElementById('chk_bav').checked;
+            const data = [
+                ...(bavOn ? [{ n: "bAV (Direktv.)", val: bavTotal }] : []),
+                { n: "AV-Depot (Neu)", val: avTotal },
+                { n: "Basis-Rente", val: ruerupTotal },
+                { n: "Privat-Rente", val: privTotal }
+            ].sort((a, b) => b.val - a.val);
+            // 5. Anzeige
+            const cardCont = document.getElementById('res_cards');
+            const tableBody = document.getElementById('res_table');
+            const chartCont = document.getElementById('res_chart');
+            cardCont.innerHTML = '';
+            tableBody.innerHTML = '';
+            chartCont.innerHTML = '';
+
+            const fmt = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtEuro = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            // Scaling: Column height relative to max invest (max height: 200px)
+            const maxVal = Math.max(...data.map(d => d.val));
+            const scale = 200 / maxVal;
+
+            data.forEach((item, i) => {
+                const heb = item.val / net;
+                const win = i === 0;
+
+                // 5a. Composition Logic for Column
+                let sNet = net;
+                let sTax = 0;
+                let sSub = 0;
+
+                if (item.n.includes("bAV")) {
+                    const brut = bavBrutto;
+                    sTax = brut - net; // kombinierter Steuer+SV-Vorteil
+                    sSub = brut * ag;
+                } else if (item.n.includes("AV-Depot")) {
+                    sSub = zulage;
+                    sTax = Math.max(0, steuer - zulage);
+                } else if (item.n.includes("Basis")) {
+                    sTax = item.val - net;
+                }
+
+                const hNet = sNet * scale;
+                const hTax = sTax * scale;
+                const hSub = sSub * scale;
+
+                // 5b. Cards
+                cardCont.innerHTML += `
+                    <div class="card ${win ? 'top' : ''}">
+                        <h3>${item.n}</h3>
+                        <div class="val">${fmtEuro(item.val)} €</div>
+                        <div class="badge">Hebel: ${fmt(heb)}x</div>
+                    </div>
+                `;
+
+                // 5c. Separate Analysis Columns
+                chartCont.innerHTML += `
+                    <div class="column-wrapper">
+                        <div class="column-container" title="${item.n}">
+                            <div class="column-segment seg-net" style="height: ${hNet}px" title="Netto: ${fmtEuro(sNet)} €"></div>
+                            ${sTax > 0 ? `<div class="column-segment seg-tax" style="height: ${hTax}px" title="Vorteil: ${fmtEuro(sTax)} €"></div>` : ''}
+                            ${sSub > 0 ? `<div class="column-segment seg-sub" style="height: ${hSub}px" title="Zuschuss: ${fmtEuro(sSub)} €"></div>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // 5d. Table
+                tableBody.innerHTML += `
+                    <tr class="${win ? 'win-row' : ''}">
+                        <td>${item.n}</td>
+                        <td>${fmtEuro(net)} €</td>
+                        <td>${fmtEuro(item.val)} €</td>
+                        <td><strong>${fmt(heb)}</strong></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('output').style.display = 'block';
+        }); </script>
+</body>
+
+</html>
